@@ -5,101 +5,99 @@
 
 // Token
 enum {
-    TK_NUM = 256, // Integer token
-    TK_EOF, // Token for end of input
+  TK_NUM = 256, // Integer token
+  TK_EOF,       // Token for end of input
 };
 
 // Type for Token
 typedef struct {
-    int ty; // token type
-    int val; // value if ty is TK_NUM
-    char *input; // token string (for error message)
+  int ty;      // token type
+  int val;     // value if ty is TK_NUM
+  char *input; // token string (for error message)
 } Token;
 
 // Store tokens. Assume maximum token size is 100.
 Token tokens[100];
 
-
 // Separate string p to tokens
 void tokenize(char *p) {
-    int i = 0;
-    while (*p) {
-        if (isspace(*p)) {
-            p++;
-            continue;
-        }
-
-        if (*p == '+' || *p == '-') {
-            tokens[i].ty = *p;
-            tokens[i].input = p;
-            i++;
-            p++;
-            continue;
-        }
-
-        if (isdigit(*p)) {
-            tokens[i].ty = TK_NUM;
-            tokens[i].input = p;
-            tokens[i].val = strtol(p, &p, 10);
-            i ++;
-            continue;
-        }
-
-        fprintf(stderr, "Failed to tokenize: %s\n", p);
-        exit(1);
+  int i = 0;
+  while (*p) {
+    if (isspace(*p)) {
+      p++;
+      continue;
     }
 
-    tokens[i].ty = TK_EOF;
-    tokens[i].input = p;
-}
+    if (*p == '+' || *p == '-') {
+      tokens[i].ty = *p;
+      tokens[i].input = p;
+      i++;
+      p++;
+      continue;
+    }
 
+    if (isdigit(*p)) {
+      tokens[i].ty = TK_NUM;
+      tokens[i].input = p;
+      tokens[i].val = strtol(p, &p, 10);
+      i++;
+      continue;
+    }
+
+    fprintf(stderr, "Failed to tokenize: %s\n", p);
+    exit(1);
+  }
+
+  tokens[i].ty = TK_EOF;
+  tokens[i].input = p;
+}
 
 // Report error
 void error(int i) {
-    fprintf(stderr, "Unexpected token: %s\n", tokens[i].input);
-    exit(1);
+  fprintf(stderr, "Unexpected token: %s\n", tokens[i].input);
+  exit(1);
 }
 
 int main(int argc, char **argv) {
-    if (argc != 2) {
-        fprintf(stderr, "Number of arguments is incorrect.\n");
-        return 1;
-    }
+  if (argc != 2) {
+    fprintf(stderr, "Number of arguments is incorrect.\n");
+    return 1;
+  }
 
-    // Tokenize
-    tokenize(argv[1]);
+  // Tokenize
+  tokenize(argv[1]);
 
-    printf(".intel_syntax noprefix\n");
-    printf(".global _main\n");
-    printf("_main:\n");
+  printf(".intel_syntax noprefix\n");
+  printf(".global _main\n");
+  printf("_main:\n");
 
-    if (tokens[0].ty != TK_NUM)
-        error(0);
-    printf("  mov rax, %d\n", tokens[0].val);
+  if (tokens[0].ty != TK_NUM)
+    error(0);
+  printf("  mov rax, %d\n", tokens[0].val);
 
-    int i = 1;
-    while (tokens[i].ty != TK_EOF) {
-        if (tokens[i].ty == '+') {
-            i++;
-            if (tokens[i].ty != TK_NUM)
-                error(i);
-            printf("  add rax, %d\n", tokens[i].val);
-            i++;
-            continue;
-        }
-
-        if (tokens[i].ty == '-') {
-            i++;
-            if (tokens[i].ty != TK_NUM)
-                error(i);
-            printf("  sub rax, %d\n", tokens[i].val);
-            i++;
-            continue;
-        }
-
+  int i = 1;
+  while (tokens[i].ty != TK_EOF) {
+    if (tokens[i].ty == '+') {
+      i++;
+      if (tokens[i].ty != TK_NUM)
         error(i);
+      printf("  add rax, %d\n", tokens[i].val);
+      i++;
+      continue;
     }
 
-    printf("  ret\n");
-    return 0;
+    if (tokens[i].ty == '-') {
+      i++;
+      if (tokens[i].ty != TK_NUM)
+        error(i);
+      printf("  sub rax, %d\n", tokens[i].val);
+      i++;
+      continue;
+    }
+
+    error(i);
+  }
+
+  printf("  ret\n");
+  return 0;
 }
