@@ -1,6 +1,6 @@
 *~
 *.o
 tmp*
-lcc
+bcc
 
 .idea/
